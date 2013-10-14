@@ -1,0 +1,91 @@
+<!Doctype html>
+<html xmlns=http://www.w3.org/1999/xhtml>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style type="text/css">
+body {text-align:center}
+.main {width:600px; height:300px; line-height:300px; margin:0 auto; text-align:center}
+.main label {vertical-align:middle}
+.list-container {position:absolute; display:none; width:200px; border:1px solid #ddd; color:#999}
+.list-item {border-bottom:1px; margin-bottom:-1px; height:25px; line-height:25px; font-size:14px; text-align:left; color:#444}
+.list-item.on {background:#ccc}
+</style>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" type="text/javascript"></script>
+<script src="Event.js" type="text/javascript"></script>
+<script src="SuggestionXHR.js" type="text/javascript"></script>
+<script src="DropList.js" type="text/javascript"></script>
+<script src="InputListener.js" type="text/javascript"></script>
+</head>
+
+<body>
+<div class="main">
+    <label>搜索：<input type="text" id="_j_suggestinput" autocomplete="off" /></label>
+</div>
+<div class="list-container" id="_j_listcontainer"></div>
+<script type="text/javascript">
+(function() {
+    
+    var inputDom = $("#_j_suggestinput");
+    
+    // listen input
+    InputListener.listen(inputDom, onInputChange);
+
+    // input suggestion xhr
+    var suggestionXHR = new SuggestionXHR({"URL": "http://huahuadesign.sinaapp.com/app/suggestion.php"});
+
+    // drop list
+    var dropList = new DropList({
+            "trigger": inputDom,
+            "container": $("#_j_listcontainer"),
+            "updateList": function(data) {
+                var listHtml = "";
+                if(data.length > 0) {
+                    for(var i=0,len=data.length; i<len; i++) {
+                        listHtml += '<div class="list-item _j_listitem">'+data[i]+'</div>';
+                    }
+                } else {
+                    listHtml = "无相关结果";
+                }
+                this.container.html(listHtml);
+
+                // position
+                var triggerOffset = this.trigger.offset();
+                this.container.css({"top": triggerOffset.top + this.trigger.outerHeight(), "left":triggerOffset.left});
+            }
+        });
+    Event(dropList).on("item selected", onSelectItem);
+
+    function onInputChange(ev) {
+        var inputVal = $.trim($(ev.target).val());
+        if(inputVal.length == 0) {
+            suggestionXHR.stop();
+            dropList.hide();
+        } else {
+            suggestionXHR.getSuggestion({"key":inputVal}, onGetSuggestion);
+        }
+    }
+
+    function onGetSuggestion(data) {
+        data = $.parseJSON(data);
+        if(data && Object.prototype.toString.call(data) == "[object Array]") {
+            dropList.show(data);
+        }
+    }
+
+    function onSelectItem(data) {
+        var selectItem = data.item;
+        if(!selectItem.length) {
+            return false;
+        } else {
+            inputDom.blur();
+            inputDom.val(selectItem.text());
+            inputDom.focus();
+        }
+        dropList.hide();
+    }
+
+} ());
+</script>
+</body>
+</html>
