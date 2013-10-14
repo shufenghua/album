@@ -19,7 +19,7 @@ function Event(obj) {
 
         'fire': function(eventType) {
             var args = Array.prototype.slice.call(arguments, 1);
-            return (new EventObj(typePrefix+eventType).fire(args));
+            return (new EventObj(typePrefix+eventType)).fire(args);
         },
 
         'un': function(eventType, handler) {
@@ -35,7 +35,7 @@ Event.on = function(eventType, handler) {
 };
 Event.fire = function(eventType) {
     var args = Array.prototype.slice.call(arguments, 1);
-    return (new EventObj(eventType).fire(args));
+    return (new EventObj(eventType)).fire(args);
 };
 Event.un = function(eventType, handler) {
     return (new EventObj(eventType)).un(handler);
